@@ -16,7 +16,7 @@
 # **Project: Customer Segmentation (Clustering)**
 
 <p align="center">
-  <img src="![image](https://github.com/Marc-Aradillas/customer-segmentation-project/assets/106922826/8b40a483-b1c8-4839-a230-cc96bbf141ca)" width="750" alt="Image">
+  <img src="https://github.com/Marc-Aradillas/customer-segmentation-project/assets/106922826/8b40a483-b1c8-4839-a230-cc96bbf141ca" width="750" alt="Image">
 </p>
 
 ### A repository utilizing a customer segmentation dataset from Kaggle, displaying technique and approaches for customer segmentation implementing clustering algorithms in conjunction with A/B testing in order to draw up business insights and strategies/actionable reccomendations
