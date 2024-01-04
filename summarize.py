@@ -1,6 +1,5 @@
 # add a summary function to populate summary of data.
 
-import env
 import os
 import numpy as np
 import pandas as pd
