@@ -38,8 +38,12 @@ def prepare_data(df):
     df = df.set_index("invoice_date").sort_index()
 
     df = handle_missing_values(df, prop_required_column=.25, prop_required_row=0.95)
-
+    
     df['customer_id'].fillna(0, inplace=True)
+
+    df['is_return'] = (df['quantity'] < 0).astype(int)
+
+    df['return_unit_price'] = (df['unit_price'] < 0).astype(int)
     
     return df
 
