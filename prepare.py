@@ -44,6 +44,12 @@ def prepare_data(df):
     df['is_return'] = (df['quantity'] < 0).astype(int)
 
     df['return_unit_price'] = (df['unit_price'] < 0).astype(int)
+
+    # changing all negative values to zeros
+    df['quantity'] = df['quantity'].apply(lambda x: max(x, 0))
+    
+    df['unit_price'] = df['unit_price'].apply(lambda x: max(x, 0))
+
     
     return df
 
