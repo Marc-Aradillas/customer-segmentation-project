@@ -41,9 +41,10 @@ def prepare_data(df):
     
     df['customer_id'].fillna(0, inplace=True)
 
-    df['is_return'] = (df['quantity'] < 0).astype(int)
+    # No longer needed due to code below commented code
+    # df['is_return'] = (df['quantity'] < 0).astype(int)
 
-    df['return_unit_price'] = (df['unit_price'] < 0).astype(int)
+    # df['return_unit_price'] = (df['unit_price'] < 0).astype(int)
 
     # changing all negative values to zeros
     df['quantity'] = df['quantity'].apply(lambda x: max(x, 0))
