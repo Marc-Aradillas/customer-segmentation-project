@@ -1,21 +1,46 @@
 # wrangle module
 
-import pandas
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 # custom imports
 import acquire as a
 import prepare as p
 
 
+# Constant scaler for data scaling
+mms = MinMaxScaler()
+
+
 def wrangle_data():
-    '''
-    Function to acquire and clean data
-    '''
+    """
+    Orchestrates the data acquisition, cleaning, splitting, and scaling process.
+
+    Returns: tuple or None: A tuple containing train, validation, and test DataFrames if data is acquired successfully, or None IF 
+    data acquisition fails.
+    """
     df = a.acquire_data()
 
-    df = p.prepare_data(df)
+    if df is not None:
+        
+        # Clean the data
+        df = p.prepare_data(df)
 
-    return df
+        # df_encoded = one_hot_encode(df, ['invoice_no', 'stock_code', 'description', 'country'])
+        
+        # Split the data
+        train, val, test = train_val_test(df)
+
+        # Scale the data
+        # train_scaled, val_scaled, test_scaled = scale_data(train, val, test, mms)
+        
+        return train, val, test
+    
+    else:
+        
+        # Handle the case where data acquisition failed
+        return None
 
 
 def train_val_test(df, target=None, seed = 42):
@@ -32,22 +57,38 @@ def train_val_test(df, target=None, seed = 42):
 
 
 def scale_data(train, val, test, scaler):
-
-    # make copies for scaling
+    # Make copies for scaling
     train_scaled = train.copy()
     validate_scaled = val.copy()
     test_scaled = test.copy()
 
-    columns_to_scale = ['customer_id', 'age', 'annual_income', 'spending_score', 'female', 'male']
-    
-    # Fit the scaler on the training data for all of the columns
-    scaler.fit(train[columns_to_scale])
-    
-    # Transform the data for each split
-    train_scaled[columns_to_scale] = scaler.transform(train[columns_to_scale])
-    validate_scaled[columns_to_scale] = scaler.transform(val[columns_to_scale])
-    test_scaled[columns_to_scale] = scaler.transform(test[columns_to_scale])
+    # Define numeric columns for scaling
+    numeric_columns = train.select_dtypes(include='number').columns.tolist()
 
-    scaled_col = [train_scaled, validate_scaled, test_scaled]
+    # Fit the scaler on the training data for numeric columns
+    scaler.fit(train[numeric_columns])
+
+    # Transform the data for each split using the fitted scaler
+    train_scaled[numeric_columns] = scaler.transform(train[numeric_columns])
+    validate_scaled[numeric_columns] = scaler.transform(val[numeric_columns])
+    test_scaled[numeric_columns] = scaler.transform(test[numeric_columns])
+
+    scaled_data = [train_scaled, validate_scaled, test_scaled]
+
+    return scaled_data
+
+
+def one_hot_encode(df, categorical_columns):
+    """
+    One-hot encodes the specified categorical columns in the DataFrame.
+
+    Parameters:
+    - df: pandas DataFrame
+    - categorical_columns: list of str, names of categorical columns to encode
+
+    Returns:
+    - df_encoded: pandas DataFrame, the DataFrame with one-hot encoded columns
+    """
+    df_encoded = pd.get_dummies(df, columns=categorical_columns)
     
-    return train_scaled, validate_scaled, test_scaled
+    return df_encoded

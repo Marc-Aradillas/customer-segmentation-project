@@ -51,8 +51,15 @@ def prepare_data(df):
     
     df['unit_price'] = df['unit_price'].apply(lambda x: max(x, 0))
 
+    # Total price feature addition
+
+    df['total_price'] = df['quantity'] * df['unit_price']
+
     
     return df
+
+
+
 
 # MISSING VALUES FUNCTION
 
@@ -71,6 +78,9 @@ def missing_values(df):
     summary_df = pd.DataFrame({'Missing Values' : missing_counts, 'Percentage Missing (%)': missing_percentages})
 
     return summary_df
+
+
+
 
 # HANDLE MISSING VALUES FUNCTION
 
