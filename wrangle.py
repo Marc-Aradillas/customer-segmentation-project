@@ -9,10 +9,6 @@ import acquire as a
 import prepare as p
 
 
-# Constant scaler for data scaling
-mms = MinMaxScaler()
-
-
 def wrangle_data():
     """
     Orchestrates the data acquisition, cleaning, splitting, and scaling process.
@@ -28,14 +24,19 @@ def wrangle_data():
         df = p.prepare_data(df)
 
         # df_encoded = one_hot_encode(df, ['invoice_no', 'stock_code', 'description', 'country'])
-        
+
+        # a new_df for k-means
+        new_df = df.groupby('CustomerID').agg({'InvoiceDate': lambda x: (df['InvoiceDate'].max() - x.max()).days,
+                                            'InvoiceNo': 'count',
+                                            'TotalPrice': 'sum'})
         # Split the data
         train, val, test = train_val_test(df)
 
         # Scale the data
-        # train_scaled, val_scaled, test_scaled = scale_data(train, val, test, mms)
+        mms = MinMaxScaler()
+        train_scaled, val_scaled, test_scaled = scale_data(train, val, test, mms)
         
-        return train, val, test
+        return train_scaled, val_scaled, test_scaled
     
     else:
         
@@ -44,6 +45,9 @@ def wrangle_data():
 
 
 def train_val_test(df, target=None, seed = 42):
+    '''
+    A function to split dataset into train, val, test
+    '''
 
     train, val_test = train_test_split(df, train_size = 0.7,
                                        random_state = seed,
@@ -57,6 +61,9 @@ def train_val_test(df, target=None, seed = 42):
 
 
 def scale_data(train, val, test, scaler):
+    '''
+    Scales data
+    '''
     # Make copies for scaling
     train_scaled = train.copy()
     validate_scaled = val.copy()

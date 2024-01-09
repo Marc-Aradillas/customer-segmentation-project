@@ -2,6 +2,7 @@
 
 # imported libs
 import pandas as pd
+import numpy as np
 
 # custome imports
 import acquire as a
@@ -11,7 +12,7 @@ import acquire as a
 def prepare_data(df):
     
     '''
-    This function serves to accomplish cleaning of raw customier segmentation 
+    This function serves to accomplish cleaning of raw customir segmentation 
     data from kaggle.
     '''
     # import acquisition of raw data
@@ -41,6 +42,16 @@ def prepare_data(df):
     
     df['customer_id'].fillna(0, inplace=True)
 
+    # Converting the following features to strings
+    df['invoice_no'] = df['invoice_no'].astype(str)
+    
+    df['stock_code'] = df['stock_code'].astype(str)
+
+    df['customer_id'] = df['customer_id'].astype(int)
+    
+    df['customer_id'] = df['customer_id'].astype(str)
+
+    
     # No longer needed due to code below commented code
     # df['is_return'] = (df['quantity'] < 0).astype(int)
 
@@ -55,8 +66,12 @@ def prepare_data(df):
 
     df['total_price'] = df['quantity'] * df['unit_price']
 
-    
-    return df
+    for col in df.select_dtypes(include='number').columns:
+        
+        df[f'{col}_outliers'] = identify_outliers(df[col])
+
+
+    return df, new_df
 
 
 
@@ -101,3 +116,20 @@ def handle_missing_values(df, prop_required_column, prop_required_row):
     df = df.dropna(axis=0, thresh=row_threshold)
     
     return df
+
+
+
+# IDENTIFY OUTLIERS FUNCTION
+
+def identify_outliers(col, k=1.5):
+    
+    q1, q3 = col.quantile([0.25, 0.75])
+    
+    iqr = q3 - q1
+    
+    lower_fence = q1 - iqr * k
+    upper_fence = q3 + iqr * k
+    
+    return np.where((col < lower_fence) | (col > upper_fence), 1, 0)
+
+
