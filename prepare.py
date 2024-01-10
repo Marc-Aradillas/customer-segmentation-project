@@ -36,7 +36,7 @@ def prepare_data(df):
     df.invoice_date = pd.to_datetime(df.invoice_date)
     
     # Sorting rows by the date and then set the index as that date
-    df = df.set_index("invoice_date").sort_index()
+    # df = df.set_index("invoice_date").sort_index()
 
     df = handle_missing_values(df, prop_required_column=.25, prop_required_row=0.95)
     
@@ -71,7 +71,7 @@ def prepare_data(df):
         df[f'{col}_outliers'] = identify_outliers(df[col])
 
 
-    return df, new_df
+    return df
 
 
 

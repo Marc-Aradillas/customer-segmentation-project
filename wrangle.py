@@ -26,9 +26,9 @@ def wrangle_data():
         # df_encoded = one_hot_encode(df, ['invoice_no', 'stock_code', 'description', 'country'])
 
         # a new_df for k-means
-        new_df = df.groupby('CustomerID').agg({'InvoiceDate': lambda x: (df['InvoiceDate'].max() - x.max()).days,
-                                            'InvoiceNo': 'count',
-                                            'TotalPrice': 'sum'})
+        new_df = df.groupby('customer_id').agg({'invoice_date': lambda x: (df['invoice_date'].max() - x.max()).days,
+                                            'invoice_no': 'count',
+                                            'total_price': 'sum'})
         # Split the data
         train, val, test = train_val_test(df)
 
@@ -36,12 +36,13 @@ def wrangle_data():
         mms = MinMaxScaler()
         train_scaled, val_scaled, test_scaled = scale_data(train, val, test, mms)
         
-        return train_scaled, val_scaled, test_scaled
+        return train, val, test, train_scaled, val_scaled, test_scaled, new_df, df
     
     else:
         
         # Handle the case where data acquisition failed
-        return None
+        return None, None, None, None, None
+
 
 
 def train_val_test(df, target=None, seed = 42):
