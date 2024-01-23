@@ -3,6 +3,7 @@
 # imported libs
 import pandas as pd
 import numpy as np
+from datetime import timedelta
 
 # custome imports
 import acquire as a
@@ -65,6 +66,30 @@ def prepare_data(df):
     # Total price feature addition
 
     df['total_price'] = df['quantity'] * df['unit_price']
+
+    # extracted datetime features from invoice_date
+    
+    df["invoice_date_day"] = df["invoice_date"].dt.date
+    
+    df["invoice_date_time"] = df["invoice_date"].dt.time
+    
+    df["invoice_year"] = df["invoice_date"].dt.year
+    
+    df["invoice_month"] = df["invoice_date"].dt.month
+    
+    df["invoice_month_name"] = df["invoice_date"].dt.month_name()
+    
+    df["invoice_day"] = df["invoice_date"].dt.day
+    
+    df["invoice_day_name"] = df["invoice_date"].dt.day_name()
+    
+    df["invoice_day_of_week"] = df["invoice_date"].dt.day_of_week
+    
+    df["invoice_week_of_year"] = df["invoice_date"].dt.weekofyear
+    
+    df["invoice_hour"] = df["invoice_date"].dt.hour
+
+    # Outlier columns features
 
     for col in df.select_dtypes(include='number').columns:
         
