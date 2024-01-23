@@ -44,6 +44,7 @@ def prepare_data(df):
     df['customer_id'].fillna(0, inplace=True)
 
     # Converting the following features to strings
+    
     df['invoice_no'] = df['invoice_no'].astype(str)
     
     df['stock_code'] = df['stock_code'].astype(str)
@@ -52,16 +53,37 @@ def prepare_data(df):
     
     df['customer_id'] = df['customer_id'].astype(str)
 
-    
-    # No longer needed due to code below commented code
-    # df['is_return'] = (df['quantity'] < 0).astype(int)
+    # need to remove all canceled invoices and its positive counterparts
 
-    # df['return_unit_price'] = (df['unit_price'] < 0).astype(int)
+    negative_quantity = df[df["quantity"] < 0][["customer_id", "stock_code", "quantity"]].sort_values("quantity")
 
-    # changing all negative values to zeros
-    df['quantity'] = df['quantity'].apply(lambda x: max(x, 0))
+    filtered = df[df["customer_id"].isin(negative_quantity["customer_id"])]
+    filtered = filtered[filtered["stock_code"].isin(negative_quantity["stock_code"])]
+
     
-    df['unit_price'] = df['unit_price'].apply(lambda x: max(x, 0))
+    # Initialize an empty list to store the indices of corresponding positive counterparts
+    pos_counters = []
+    
+    # Iterate over rows in the 'neg_quantity' DataFrame
+    for idx, series in negative_quantity.iterrows():
+        # Extract relevant information from the current row
+        customer = series["customer_id"]
+        code = series["stock_code"]
+        quantity = -1 * series["quantity"]  # Convert quantity to positive
+    
+        # Filter rows in 'filtered' DataFrame matching the specified conditions
+        counterpart = filtered[(filtered["customer_id"] == customer) & 
+                               (filtered["stock_code"] == code) & 
+                               (filtered["quantity"] == quantity)]
+    
+        # Extend the list of indices with the found positive counterparts
+        pos_counters.extend(counterpart.index.to_list())
+    
+    # Create a list of indices to drop, including both negative quantity rows and their positive counterparts
+    to_drop = negative_quantity.index.to_list() + pos_counters
+    
+    # Drop the specified rows from the DataFrame 'df'
+    df.drop(to_drop, axis=0, inplace=True)
 
     # Total price feature addition
 
@@ -85,7 +107,7 @@ def prepare_data(df):
     
     df["invoice_day_of_week"] = df["invoice_date"].dt.day_of_week
     
-    df["invoice_week_of_year"] = df["invoice_date"].dt.weekofyear
+    df["invoice_week_of_year"] = df["invoice_date"].dt.isocalendar().week
     
     df["invoice_hour"] = df["invoice_date"].dt.hour
 

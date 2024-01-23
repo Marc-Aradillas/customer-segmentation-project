@@ -7,6 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 # custom imports
 import acquire as a
 import prepare as p
+from datetime import timedelta
 
 
 def wrangle_data():
@@ -29,6 +30,19 @@ def wrangle_data():
         new_df = df.groupby('customer_id').agg({'invoice_date': lambda x: (df['invoice_date'].max() - x.max()).days,
                                             'invoice_no': 'count',
                                             'total_price': 'sum'})
+
+        ref_date = df["invoice_date_day"].max() + timedelta(days=1)
+
+        df_customers = df.groupby("customer_id").agg({
+            "invoice_date_day": lambda x : (ref_date - x.max()).days,
+            "invoice_no": "count",
+            "total_value": "sum"
+        }).rename(columns={
+            "invoice_date_day": "Recency",
+            "invoice_no": "Frequency",
+            "total_value": "MonetaryValue"
+        })
+        
         # Split the data
         train, val, test = train_val_test(df)
 
@@ -36,7 +50,7 @@ def wrangle_data():
         mms = MinMaxScaler()
         train_scaled, val_scaled, test_scaled = scale_data(train, val, test, mms)
         
-        return train, val, test, train_scaled, val_scaled, test_scaled, new_df, df
+        return train, val, test, train_scaled, val_scaled, test_scaled, new_df, df_customers, df
     
     else:
         
