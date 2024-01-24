@@ -64,7 +64,7 @@ def prepare_data(df):
     # Initialize an empty list to store the indices of corresponding positive counterparts
     pos_counters = []
     
-    # Iterate over rows in the 'neg_quantity' DataFrame
+    # Iterate over rows in the 'negative_quantity' DataFrame
     for idx, series in negative_quantity.iterrows():
         # Extract relevant information from the current row
         customer = series["customer_id"]

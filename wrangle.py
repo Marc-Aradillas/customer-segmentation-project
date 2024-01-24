@@ -36,11 +36,11 @@ def wrangle_data():
         df_customers = df.groupby("customer_id").agg({
             "invoice_date_day": lambda x : (ref_date - x.max()).days,
             "invoice_no": "count",
-            "total_value": "sum"
+            "total_price": "sum"
         }).rename(columns={
             "invoice_date_day": "Recency",
             "invoice_no": "Frequency",
-            "total_value": "MonetaryValue"
+            "total_price": "MonetaryValue"
         })
         
         # Split the data
