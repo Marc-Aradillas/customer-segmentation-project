@@ -22,12 +22,12 @@ def wrangle_data():
     
     df = a.acquire_data()
 
-    if df is not None:
-
-        ### Prepared Data ###
+    ### Prepared Data ###
         
-        # Clean the data
-        df = p.prepare_data(df)
+    # Clean the data
+    df = p.prepare_data(df)
+
+    if df is not None:
 
         ### a new_df for k-means approach! ###
         
