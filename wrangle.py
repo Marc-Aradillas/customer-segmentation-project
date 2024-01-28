@@ -17,37 +17,67 @@ def wrangle_data():
     Returns: tuple or None: A tuple containing train, validation, and test DataFrames if data is acquired successfully, or None IF 
     data acquisition fails.
     """
+
+    ### Retrieve Raw Data ###
+    
     df = a.acquire_data()
 
     if df is not None:
+
+        ### Prepared Data ###
         
         # Clean the data
         df = p.prepare_data(df)
 
-        # df_encoded = one_hot_encode(df, ['invoice_no', 'stock_code', 'description', 'country'])
+        ### a new_df for k-means approach! ###
+        
+        # Group the DataFrame 'df' by 'customer_id'
+        # For each group, calculate aggregated values using the agg() function
+        new_df = df.groupby('customer_id').agg({
+            # Calculate the recency (days since last invoice) for each customer
+            'invoice_date': lambda x: (df['invoice_date'].max() - x.max()).days,
+            
+            # Count the number of invoices for each customer
+            'invoice_no': 'count',
+            
+            # Sum the total_price for each customer
+            'total_price': 'sum'
+        })
 
-        # a new_df for k-means
-        new_df = df.groupby('customer_id').agg({'invoice_date': lambda x: (df['invoice_date'].max() - x.max()).days,
-                                            'invoice_no': 'count',
-                                            'total_price': 'sum'})
+        ### Customers Dataframe ###
 
+        # Calculate a reference date for recency calculation
+        # The reference date is set as the maximum invoice date in the 'invoice_date_day' column + 1 day
         ref_date = df["invoice_date_day"].max() + timedelta(days=1)
-
+        
+        # Group the DataFrame 'df' by 'customer_id'
+        # For each group, calculate aggregated values using the agg() function
         df_customers = df.groupby("customer_id").agg({
-            "invoice_date_day": lambda x : (ref_date - x.max()).days,
+            # Calculate recency for each customer by finding the days since their last invoice
+            "invoice_date_day": lambda x: (ref_date - x.max()).days,
+            
+            # Count the number of invoices for each customer
             "invoice_no": "count",
+            
+            # Sum the total_price for each customer
             "total_price": "sum"
         }).rename(columns={
+            # Rename the columns for clarity in the resulting DataFrame
             "invoice_date_day": "Recency",
             "invoice_no": "Frequency",
             "total_price": "MonetaryValue"
         })
+
+        ### Train Validation and Test Subsets ###
         
         # Split the data
         train, val, test = train_val_test(df)
 
-        # Scale the data
+        ### Scaled Train, Validation, and Test Subsets ###
+        
+        # Scale the data using the MinMaxScaler from the SKLearn Library Preprocessing Module
         mms = MinMaxScaler()
+        # Assigned subset names
         train_scaled, val_scaled, test_scaled = scale_data(train, val, test, mms)
         
         return train, val, test, train_scaled, val_scaled, test_scaled, new_df, df_customers, df
