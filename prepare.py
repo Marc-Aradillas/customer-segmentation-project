@@ -55,11 +55,16 @@ def prepare_data(df):
     
     df['customer_id'] = df['customer_id'].astype(str)
 
-    # Outlier columns features
-
+    # Remove outliers
+    
     for col in df.select_dtypes(include='number').columns:
+        df = remove_outliers(df, col)
+    
+    # # Outlier columns features
+
+    # for col in df.select_dtypes(include='number').columns:
         
-        df[f'{col}_outliers'] = identify_outliers(df[col])
+    #     df[f'{col}_outliers'] = identify_outliers(df[col])
 
     # need to remove all canceled invoices and its positive counterparts
 
