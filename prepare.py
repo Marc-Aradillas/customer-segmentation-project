@@ -40,8 +40,10 @@ def prepare_data(df):
     # df = df.set_index("invoice_date").sort_index()
 
     df = handle_missing_values(df, prop_required_column=.25, prop_required_row=0.95)
+
+    # Dropping all 0s for custoemr_ID
     
-    df['customer_id'].fillna(0, inplace=True)
+    df.drop(df[df["customer_id"].isnull()].index, axis=0, inplace=True)
 
     # Converting the following features to strings
     
@@ -52,6 +54,12 @@ def prepare_data(df):
     df['customer_id'] = df['customer_id'].astype(int)
     
     df['customer_id'] = df['customer_id'].astype(str)
+
+    # Outlier columns features
+
+    for col in df.select_dtypes(include='number').columns:
+        
+        df[f'{col}_outliers'] = identify_outliers(df[col])
 
     # need to remove all canceled invoices and its positive counterparts
 
@@ -85,6 +93,10 @@ def prepare_data(df):
     # Drop the specified rows from the DataFrame 'df'
     df.drop(to_drop, axis=0, inplace=True)
 
+    # Dropping rows where unit price is 0
+    
+    df.drop(df[df["unit_price"] == 0].index, axis=0, inplace=True)
+
     # Total price feature addition
 
     df['total_price'] = df['quantity'] * df['unit_price']
@@ -111,13 +123,6 @@ def prepare_data(df):
     
     df["invoice_hour"] = df["invoice_date"].dt.hour
 
-    # Outlier columns features
-
-    for col in df.select_dtypes(include='number').columns:
-        
-        df[f'{col}_outliers'] = identify_outliers(df[col])
-
-
     return df
 
 
@@ -141,16 +146,11 @@ def missing_values(df):
 
     return summary_df
 
-
-
-
-# HANDLE MISSING VALUES FUNCTION
+# HANDLE MISSING VALUES
 
 def handle_missing_values(df, prop_required_column, prop_required_row):
-    '''
-    This function is to calculate the threshold for columns and rows.
-    '''
-    # create thresholds and totals
+    # Calculate the threshold for columns and rows
+    
     total_rows = df.shape[0]
     total_columns = df.shape[1]
     col_threshold = int(total_rows * prop_required_column)
@@ -164,9 +164,7 @@ def handle_missing_values(df, prop_required_column, prop_required_row):
     
     return df
 
-
-
-# IDENTIFY OUTLIERS FUNCTION
+# IDENTIFY OUTLIERS
 
 def identify_outliers(col, k=1.5):
     
@@ -179,4 +177,30 @@ def identify_outliers(col, k=1.5):
     
     return np.where((col < lower_fence) | (col > upper_fence), 1, 0)
 
+# example use:
+'''
+for col in df.columns[df.dtypes == 'float64']:
+    
+    df[f'{col}_outliers'] = identify_outliers(df[col])  
+'''
+
+### REMOVE OUTLIERS
+
+def remove_outliers(df, col_name, k=1.5):
+    """
+    Removes outliers from a DataFrame based on a specified column.
+    
+    Parameters:
+        df (DataFrame): The DataFrame containing the data.
+        col_name (str): The name of the column to identify outliers.
+        k (float): The multiplier for the interquartile range (default is 1.5).
+        
+    Returns:
+        DataFrame: The DataFrame with outliers removed.
+    """
+    q1, q3 = df[col_name].quantile([0.25, 0.75])
+    iqr = q3 - q1
+    lower_fence = q1 - iqr * k
+    upper_fence = q3 + iqr * k
+    return df[(df[col_name] >= lower_fence) & (df[col_name] <= upper_fence)]
 
