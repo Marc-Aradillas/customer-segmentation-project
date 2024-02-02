@@ -39,9 +39,9 @@ def prepare_data(df):
     # Sorting rows by the date and then set the index as that date
     # df = df.set_index("invoice_date").sort_index()
 
-    df = handle_missing_values(df, prop_required_column=.25, prop_required_row=0.95)
+    df = handle_missing_values(df, prop_required_column=.25, prop_required_row=0.75)
 
-    # Dropping all 0s for custoemr_ID
+    # Dropping all 0s for customer_ID
     
     df.drop(df[df["customer_id"].isnull()].index, axis=0, inplace=True)
 
